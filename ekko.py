@@ -322,7 +322,7 @@ class FlickrAccount(Account):
         page = 1
         for json_file in os.listdir(self.data_directory()):
             try:
-                f = open(json_file)
+                f = open(os.path.join(self.data_directory(), json_file))
                 r = f.read()                
                 j = json.loads(r)
                 self.ingest_photos(j['photos']['photo'])
@@ -488,7 +488,7 @@ class MlkshkAccount(Account):
         page = 1
         for json_file in os.listdir(self.data_directory()):
             try:
-                f = open(json_file)
+                f = open(os.path.join(self.data_directory(),json_file))
                 r = f.read()                
             except:
                 print "could not open file"

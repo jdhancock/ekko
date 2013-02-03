@@ -586,6 +586,40 @@ class BlogAccount(Account):
                 collection.insert(item)
 
 
+class FfffoundAccount(Account):
+    source = 'ffffound'
+    service = 'ffffound'
+
+    def __init__(self, credentials):
+        self.credentials = credentials
+
+    def ingest(self):
+        print self.data_directory()
+        for file_name in os.listdir(self.data_directory()):
+            f = open(os.path.join(self.data_directory(), file_name))
+            r = f.read()
+            image = json.loads(r)
+            try:
+                self.ingest_image(image)
+            except:
+                pass
+
+    def ingest_image(self, image):
+        time_struct = time.strptime(image['date'], "%Y-%m-%d %H:%M:%S")
+        d = datetime.fromtimestamp(time.mktime(time_struct))
+        item = {
+            'title': image['source_title'],
+            'url': image['url'],
+            'date': d,
+            'image_url': image['image_url'],
+            'source_url': image['source_url'],
+            'source_image_url': image['source_image_url'],
+            'source': self.source,
+            }
+        collection.update({'url': image['url'], 'source': 'ffffound'}, {"$set": item}, True)
+        print 'upserting %s' % image['url']
+
+
 def write_file(outfile, output):
     try:
         outdir = os.path.dirname(outfile)

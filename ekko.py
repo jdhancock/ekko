@@ -118,19 +118,15 @@ class InstagramAccount(Account):
             except Exception as e:
                 title = ''
 
-            item = {'instagram_id': photo['id'],
+            item = {'source_id': photo['id'],
                     'source': 'instagram',
                     'url': photo['images']['standard_resolution']['url'],
                     'title': title,
                     'date': d,
                     'original': photo}
-
-            if(collection.find_one({'instagram_id': photo['id']})):
-                print 'updating %s' % photo['id']
-                collection.update({'instagram_id': photo['id']}, item)
-            else:
-                print 'inserting %s' % photo['id']
-                collection.insert(item)
+            collection.update({'source_id': photo['id'], 'source': 'instagram'}, {"$set": item}, True)
+            print 'upserting %s' % photo['id']
+        pass
 
 
 class TwitterAccount(Account):

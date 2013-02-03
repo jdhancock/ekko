@@ -34,7 +34,8 @@
 
     {
     "service": "pinboard",
-    "username": "USERNAME"
-    },
+    "username": "USERNAME",
+    "api_token": ""
+    }
 
 ]

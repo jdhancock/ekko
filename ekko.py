@@ -643,8 +643,14 @@ def main():
                 account.mirror_all()
 
     if command == 'ingest':
-        for account in accounts:
-            account.ingest()
+        if(len(args) > 1):
+            service = args[1]
+            for a in accounts:
+                if a.service == service:
+                    a.ingest()
+        else:
+            for account in accounts:
+                account.ingest()
 
     if command == 'update':
         for account in accounts:

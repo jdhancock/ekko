@@ -230,7 +230,7 @@ class DeliciousAccount(Account):
             depth = 'recent'
         else:
             depth = 'all'
-        r = requests.get('{0}posts/{1}'.format(self.api_url, depth), auth=(self.username, password))
+        r = requests.get('{0}posts/{1}?meta=yes'.format(self.api_url, depth), auth=(self.username, password))
         write_file(self.bookmarks_file(), r.content)
 
     def ingest(self):
@@ -255,7 +255,6 @@ class DeliciousAccount(Account):
                      'content': bookmark.attrib['extended'],
                      'tags': bookmark.attrib['tag'],
                      'meta': bookmark.attrib['meta']
-#                     'original': bookmark, // no original since we don't have json, but i think this is everything?
                      }
             collection.update({'source_id': bookmark.attrib['hash'], 'source': self.service }, { "$set": item}, True)
             print 'upserting {0} id {1}'.format(self.service, item['source_id'])
@@ -301,7 +300,7 @@ class FlickrAccount(Account):
         while True:
             print 'fetching photos page %i' % page
 
-            url = 'http://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=%s&user_id=%s&extras=description,date_upload,url_l,url_o&per_page=500&page=%i&format=json&nojsoncallback=1' % (self.api_key, self.user_id, page)
+            url = 'http://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=%s&user_id=%s&extras=description,date_upload,tags,machine_tags,url_m,url_t&per_page=500&page=%i&format=json&nojsoncallback=1' % (self.api_key, self.user_id, page)
             response = requests.get(url)
             r = json.loads(response.content)
             try:

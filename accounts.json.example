@@ -35,8 +35,9 @@
 
     {
     "service": "pinboard",
-    "username": "USERNAME"
-    },
+    "username": "USERNAME",
+    "api_token": ""
+    }
 
     {
     "service": "instagram",

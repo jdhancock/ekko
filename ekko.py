@@ -283,6 +283,17 @@ class PinboardAccount(DeliciousAccount):
     def __init__(self, credentials):
         super(PinboardAccount, self).__init__(credentials)
 
+    def mirror(self, page_limit=None):
+        if self.credentials['api_token']:
+            if page_limit:
+                depth = 'recent'
+            else:
+                depth = 'all'
+            r = requests.get('{0}posts/{1}?meta=yes&auth_token={2}:{3}'.format(
+                self.api_url, depth, self.username, self.credentials['api_token']))
+            write_file(self.bookmarks_file(), r.content)
+        else:
+            super(PinboardAccount, self).mirror(page_limit)
 
 
 class FlickrAccount(Account):

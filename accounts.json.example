@@ -1,40 +1,48 @@
 [ 
     { 
-	"service": "twitter", 
-	"username": "EXAMPLE_USERNAME" 
-    },
-    {
-	"service": "tumblr",
-	"blog_url": "example.tumblr.com",
-	"consumer_key": "1234"
+    "service": "twitter", 
+    "username": "EXAMPLE_USERNAME" 
     },
 
     {
-	"service": "flickr",
-	"username": "USERNAME",
-	"api_key": "1234",
-	"user_id": "1234"
+    "service": "tumblr",
+    "blog_url": "example.tumblr.com",
+    "consumer_key": "1234"
     },
 
     {
-	"service": "mlkshk",
-	"username": "USERNAME",
-
-	"consumer_key": "",
-	"consumer_secret": "",
-	"access_token": "",
-	"access_token_secret": "",
-	"shake_id": ""
+    "service": "flickr",
+    "username": "USERNAME",
+    "api_key": "1234",
+    "user_id": "1234"
     },
 
     {
-	"service": "delicious",
-	"username": "USERNAME"
+    "service": "mlkshk",
+    "username": "USERNAME",
+
+    "consumer_key": "",
+    "consumer_secret": "",
+    "access_token": "",
+    "access_token_secret": "",
+    "shake_id": ""
+    },
+
+    {
+    "service": "delicious",
+    "username": "USERNAME"
     },
 
     {
     "service": "pinboard",
     "username": "USERNAME"
     },
+
+    {
+    "service": "instagram",
+    "username": "USERNAME",
+    "user_id": "",
+    "access_token": ""
+    }
 
 ]

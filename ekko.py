@@ -66,6 +66,72 @@ class Account(object):
     def ingest(self):
         pass
 
+class InstagramAccount(Account):
+    service = 'instagram'
+    access_token = None
+    username = None
+    user_id = None
+
+    def __init__(self, credentials):
+        self.credentials = credentials
+        self.access_token = credentials['access_token']
+        self.username = credentials['username']
+        self.user_id = credentials['user_id']
+
+    def mirror(self, page_limit=None):
+        print 'mirroring instagram for %s' % self.username
+        page = 1
+        url = 'https://api.instagram.com/v1/users/{0}/media/recent?access_token={1}'.format(self.user_id, self.access_token)
+        while True:
+            response = requests.get(url)
+            r = json.loads(response.content)
+            print 'saving page %i' % page
+            temp_file = os.path.join(self.data_directory(), self.username + str(page) + '.json')
+            write_file(temp_file, response.content)
+            page = page + 1
+            if page_limit:
+                if page > page_limit:
+                    break
+            try:
+                url = r['pagination']['next_url']
+            except KeyError as e:
+                print 'KeyError on {0} assuming no more urls'.format(e)
+                break
+
+    def ingest(self):
+        for json_file in os.listdir(self.data_directory()):
+            try:
+                f = open(os.path.join(self.data_directory(), json_file))
+                r = f.read()
+                j = json.loads(r)
+                self.ingest_photos(j['data'])
+            except Exception as e:
+                print "problem ingesting instagram %s" % json_file
+                print e
+                break
+
+    def ingest_photos(self, photos):
+        for photo in  photos:
+            time_struct = time.gmtime(float(photo['created_time']))
+            d = datetime.fromtimestamp(time.mktime(time_struct))
+            try:
+                title = photo['caption']['text']
+            except Exception as e:
+                title = ''
+
+            item = {'instagram_id': photo['id'],
+                    'source': 'instagram',
+                    'url': photo['images']['standard_resolution']['url'],
+                    'title': title,
+                    'date': d,
+                    'original': photo}
+
+            if(collection.find_one({'instagram_id': photo['id']})):
+                print 'updating %s' % photo['id']
+                collection.update({'instagram_id': photo['id']}, item)
+            else:
+                print 'inserting %s' % photo['id']
+                collection.insert(item)
 
 
 class TwitterAccount(Account):

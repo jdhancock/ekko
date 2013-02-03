@@ -20,7 +20,6 @@ from xml.etree.ElementTree import ElementTree
 import pymongo
 import requests
 
-
 # TODO: put all this in a config/settings
 data_directory = 'data'
 
@@ -203,19 +202,15 @@ class TwitterAccount(Account):
             time_struct = time.strptime(tweet['created_at'], "%a %b %d %H:%M:%S +0000 %Y") #Tue Apr 26 08:57:55 +0000 2011
             d = datetime.fromtimestamp(time.mktime(time_struct))
             
-            item = {'twitter_id': tweet['id'],
+            item = {'source_id': tweet['id'],
                     'source': 'twitter',
                     'content': tweet['text'],
                     'url': 'https://twitter.com/#!/%s/status/%s' % (tweet['user']['screen_name'], tweet['id']),
                     'date': d,
                     'original': tweet,
                     }
-            if(collection.find_one({'twitter_id': tweet['id']})):
-                print 'updating tweet id %s' % tweet['id']
-                collection.update({'twitter_id': tweet['id']}, item)
-            else:
-                print 'inserting tweet id %s' % tweet['id']
-                collection.insert(item)
+            collection.update({'source_id': tweet['id'], 'source': 'twitter'}, { "$set": item}, True)
+            print 'upserting tweet id %s' % tweet['id']
 
 
 class DeliciousAccount(Account):
@@ -248,16 +243,15 @@ class DeliciousAccount(Account):
             tree.parse(self.bookmarks_file())
             bookmarks = tree.findall('post')
             self.ingest_bookmarks(bookmarks)
-        except:
-            print 'there was a problem parsing the {0} bookmarks files {1}'.format(self.service, self.bookmarks_file())
+        except Exception as e:
+            print 'there was a problem parsing the {0} bookmarks files {1}\n message was {2}'.format(self.service, self.bookmarks_file(), e)
         
     def ingest_bookmarks(self, bookmarks):    
         for bookmark in bookmarks:
 
             time_struct = time.strptime(bookmark.attrib['time'], "%Y-%m-%dT%H:%M:%SZ") # 2012-03-31T22:14:53Z
             d = datetime.fromtimestamp(time.mktime(time_struct))
-            service_identifier = '{0}_id'.format(self.service)
-            item = { service_identifier: bookmark.attrib['href'], # i suggest hash instead of href
+            item = { 'source_id': bookmark.attrib['hash'], # i suggest hash instead of href
                      'url': bookmark.attrib['href'],
                      'source': self.service,
                      'title': bookmark.attrib['description'],
@@ -267,12 +261,8 @@ class DeliciousAccount(Account):
                      'meta': bookmark.attrib['meta']
 #                     'original': bookmark, // no original since we don't have json, but i think this is everything?
                      }
-            if(collection.find_one({service_identifier: item[service_identifier]})):
-                print 'updating {0} id {1}'.format(self.service, item[service_identifier])
-                collection.update({service_identifier: item[service_identifier]}, item)
-            else:
-                print 'inserting {0} id {1}'.format(self.service, item[service_identifier])
-                collection.insert(item)
+            collection.update({'source_id': bookmark.attrib['hash'], 'source': self.service }, { "$set": item}, True)
+            print 'upserting {0} id {1}'.format(self.service, item['source_id'])
 
 class PinboardAccount(DeliciousAccount):
     service = 'pinboard'
@@ -341,8 +331,9 @@ class FlickrAccount(Account):
                 j = json.loads(r)
                 self.ingest_photos(j['photos']['photo'])
                 page = page + 1
-            except:
-                print "problem ingesting %s" % json_file
+            except Exception as e:
+                print "problem ingesting flickr %s" % json_file
+                print e
                 break
 
     def ingest_photos(self, photos):
@@ -350,19 +341,14 @@ class FlickrAccount(Account):
             time_struct = time.gmtime(float(photo['dateupload']))
             d = datetime.fromtimestamp(time.mktime(time_struct))
 
-            item = { 'flickr_id': photo['id'],
+            item = { 'source_id': photo['id'],
                      'url': 'http://www.flickr.com/photos/%s/%s/' % (self.username, photo['id']),
                      'title': photo['title'],
                      'source': 'flickr',
                      'date': d,
                      'original': photo }
-
-            if(collection.find_one({'flickr_id': photo['id']})):
-                print 'updating %s' % photo['id']
-                collection.update({'photo_id': photo['id']}, item)
-            else:
-                print 'inserting %s' % photo['id']
-                collection.insert(item)
+            collection.update({'source_id': photo['id'], 'source': 'flickr'},{"$set": item}, True)
+            print 'upserting %s' % photo['id']
 
 
 class TumblrAccount(Account):
@@ -418,7 +404,7 @@ class TumblrAccount(Account):
                 f = open(json_file)
                 r = f.read()                
             except:
-                print "could not open file"
+                print "could not open file tumblr %s" % self.blog_url
                 break
             
             tumblr_posts = json.loads(r)['response']['posts']
@@ -431,20 +417,14 @@ class TumblrAccount(Account):
             time_struct = time.strptime(post['date'], "%Y-%m-%d %H:%M:%S GMT") #2012-03-26 19:34:00 GMT
             d = datetime.fromtimestamp(time.mktime(time_struct))
             # this is the basic crosswalk
-            item = {'tumblr_id': post['id'],
+            item = {'source_id': post['id'],
                     'source': 'tumblr',
                     'date': d,
                     'url': post['post_url'],
                     'original': post,
                     }
-            if(collection.find_one({'tumblr_id': post['id']})):
-                print 'updating %s' % post['post_url']
-                collection.update({'tumblr_id': post['id']}, item)
-            else:
-                print 'inserting %s' % post['post_url']
-                collection.insert(item)
-
-
+            collection.update({'source_id': post['id'], 'source': 'tumblr'},{"$set" : item}, True)
+            print 'upserting %s' % post['post_url']
 
 class MlkshkAccount(Account):
     service = 'mlkshk'
@@ -528,7 +508,7 @@ class MlkshkAccount(Account):
             time_struct = time.strptime(image['posted_at'], "%Y-%m-%dT%H:%M:%SZ") #2010-12-18T23:24:31Z
             d = datetime.fromtimestamp(time.mktime(time_struct))
             
-            item = {'mlkshk_id': image['sharekey'],
+            item = {'source_id': image['sharekey'],
                     'source': 'mlkshk',
                     'title': image['title'],
                     'description': image['description'],
@@ -536,14 +516,8 @@ class MlkshkAccount(Account):
                     'date': d,
                     'original': image,
                     }
-            if(collection.find_one({'mlkshk_id': image['sharekey']})):
-                print 'updating %s' % image['sharekey']
-                collection.update({'mlkshk_id': image['sharekey']}, item)
-            else:
-                print 'inserting %s' % image['sharekey']
-                collection.insert(item)
-
-
+            collection.update({'source_id': image['sharekey'], 'source': 'mlkshk'}, {"$set": item}, True)
+            print 'upserting %s' % image['sharekey']
 
 
 # reads in from a json archive

@@ -617,7 +617,7 @@ class FfffoundAccount(Account):
             'source_image_url': image['source_image_url'],
             'source': self.source,
             }
-        collection.update({'url': image['url'], 'source': 'ffffound'}, {"$set": item}, True)
+        collection.update({'source_id': item['source_id'], 'source': 'ffffound'}, {"$set": item}, True)
         print 'upserting %s' % image['url']
 
 

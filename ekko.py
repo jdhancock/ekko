@@ -18,6 +18,7 @@ from optparse import OptionParser
 from xml.etree.ElementTree import ElementTree
 
 import pymongo
+from parsedatetime import parsedatetime as pdt
 import requests
 
 
@@ -599,13 +600,14 @@ class FfffoundAccount(Account):
             f = open(os.path.join(self.data_directory(), file_name))
             r = f.read()
             image = json.loads(r)
-            try:
-                self.ingest_image(image)
-            except:
-                pass
+            self.ingest_image(image)
 
     def ingest_image(self, image):
-        time_struct = time.strptime(image['date'], "%Y-%m-%d %H:%M:%S")
+        try:
+            time_struct = time.strptime(image['date'], "%Y-%m-%d %H:%M:%S")
+        except ValueError as ve:
+            cal = pdt.Calendar()
+            time_struct, something_else = cal.parse(image['date'])
         d = datetime.fromtimestamp(time.mktime(time_struct))
         item = {
             'title': image['source_title'],

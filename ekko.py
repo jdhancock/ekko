@@ -612,6 +612,7 @@ class FfffoundAccount(Account):
             'url': image['url'],
             'date': d,
             'image_url': image['image_url'],
+            'source_id': image['url'].split('/')[-1].split('_m')[0],
             'source_url': image['source_url'],
             'source_image_url': image['source_image_url'],
             'source': self.source,
